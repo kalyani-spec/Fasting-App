@@ -1,8 +1,8 @@
-import { registerRootComponent } from 'expo';
+import notifee from '@notifee/react-native';
+import { handleNotificationEvent } from './src/lib/notifications';
 
-import App from './App';
+// Must be registered before the app renders so "+ Water" / "+ Chaas" work
+// from the lock screen while the app is killed or backgrounded.
+notifee.onBackgroundEvent(handleNotificationEvent);
 
-// registerRootComponent calls AppRegistry.registerComponent('main', () => App);
-// It also ensures that whether you load the app in Expo Go or in a native build,
-// the environment is set up appropriately
-registerRootComponent(App);
+import 'expo-router/entry';
