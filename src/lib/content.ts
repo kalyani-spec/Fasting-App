@@ -156,3 +156,64 @@ export function milestoneCopy(hours: number, goalHours: number) {
   }
   return MILESTONE_COPY[hours] ?? { headline: `${hours} hours.`, body: 'Keep it gentle.' };
 }
+
+// ---- Lock screen, widget and nudges ----
+
+/** Short facts about what's going on, per phase (same order as PHASES). */
+export const FACTS: string[][] = [
+  [
+    'Your body handles digestion first. Burning stored fuel comes a little later.',
+    'Water now keeps hunger signals quieter later. Have a glass.',
+  ],
+  [
+    'Insulin is falling. Lower insulin is what lets your body reach for stored fuel.',
+    'Your liver holds about a day of stored sugar. You are drawing on it now.',
+    'Most early hunger is your usual meal time talking, not an empty tank.',
+  ],
+  [
+    'The hunger hormone rises at your usual meal times, then falls again on its own — even if you don\'t eat.',
+    'Fat burning is picking up as stored sugar runs low.',
+    'Salt helps with headaches and light-headedness. Salted chaas counts.',
+  ],
+  [
+    'Ketones give your brain a second fuel besides sugar.',
+    'Day two is often hardest in the morning and easier by evening.',
+    'A mild headache is common now. Salt and water usually help.',
+  ],
+  [
+    'For many people hunger is quieter now than on day one.',
+    'Your body is running largely on fat and ketones.',
+    'Keep movement gentle today. An easy walk is plenty.',
+  ],
+];
+
+/** Firmer "keep going" lines for the lock screen, widget and nudges. */
+const PUSH: string[][] = [
+  ['You started. That was the hardest part.', 'One glass of water at a time.'],
+  ['Hunger now is habit, not need. It passes in about 20 minutes.', 'Stay busy. The next hour takes care of itself.'],
+  ['Ride the wave. It peaks and it passes.', 'You are past the easy part. Keep going.'],
+  ['{h} hours. Yesterday\'s hunger is behind you.', 'Your body knows what to do now. Let it.'],
+  ['The home stretch. Slow and steady.', 'You have done the hard days. Finish strong.'],
+];
+
+/** A rotating (motivation, fact) pair. `seed` picks which; same seed → same pair. */
+export function getNudge(elapsedH: number, seed = Math.floor(elapsedH)) {
+  const i = getPhaseIndex(elapsedH);
+  const h = String(Math.floor(elapsedH));
+  const push = PUSH[i][seed % PUSH[i].length].replace('{h}', h);
+  const fact = FACTS[i][seed % FACTS[i].length];
+  return { push, fact };
+}
+
+/** "6h 12m to Day 3" / "2h to your 72h goal" — the next thing worth reaching. */
+export function nextTarget(elapsedH: number, goalHours: number): { label: string; inH: number } | null {
+  const nextDay = Math.floor(elapsedH / 24) + 1; // completed days after the next boundary
+  const dayH = nextDay * 24;
+  const ms = milestonesFor(goalHours).find((m) => m > elapsedH);
+  if (elapsedH >= goalHours) return null;
+  if (dayH <= goalHours && (ms == null || dayH <= ms)) {
+    return { label: dayH === goalHours ? `your ${goalHours}h goal` : `Day ${nextDay + 1}`, inH: dayH - elapsedH };
+  }
+  if (ms != null) return { label: ms === goalHours ? `your ${goalHours}h goal` : `${ms}h`, inH: ms - elapsedH };
+  return { label: `your ${goalHours}h goal`, inH: goalHours - elapsedH };
+}

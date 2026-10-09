@@ -1,8 +1,11 @@
 import notifee from '@notifee/react-native';
-import { handleNotificationEvent } from './src/lib/notifications';
+import { registerWidgetTaskHandler } from 'react-native-android-widget';
+import { handleNotificationEvent } from './src/lib/surfaces';
+import { widgetTaskHandler } from './src/widget/taskHandler';
 
-// Must be registered before the app renders so "+ Water" / "+ Chaas" work
-// from the lock screen while the app is killed or backgrounded.
+// Both must be registered before the app renders so "+ Water" / "+ Chaas"
+// work from the lock screen and the widget while the app is killed.
 notifee.onBackgroundEvent(handleNotificationEvent);
+registerWidgetTaskHandler(widgetTaskHandler);
 
 import 'expo-router/entry';

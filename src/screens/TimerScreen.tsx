@@ -1,7 +1,8 @@
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { Platform, Pressable, StyleSheet, Switch, View } from 'react-native';
+import { requestPinWidget } from 'react-native-android-widget';
 import { Liver } from '../components/art/Organs';
 import { WaterGlass } from '../components/art/WaterGlass';
 import { GlassIcon } from '../components/art/Drinks';
@@ -14,8 +15,10 @@ import { Txt } from '../components/Txt';
 import { finishFast } from '../lib/actions';
 import { getMotivation, getPhase, milestonesFor, phaseLabel } from '../lib/content';
 import { useFast } from '../lib/FastProvider';
-import { showOngoing } from '../lib/notifications';
-import { addDrink, undoDrink } from '../lib/store';
+import { nudgesEnabled, setNudgesEnabled } from '../lib/notifications';
+import { undoDrink } from '../lib/store';
+import { WIDGET_NAME } from '../widget/FastWidget';
+import { logDrink, refreshSurfaces } from '../lib/surfaces';
 import { colors, radii } from '../lib/theme';
 import { HOUR, countToday, dayNumber, formatDayTime, formatHHMM, formatHM, totalDays } from '../lib/time';
 import type { DrinkType, Fast } from '../lib/types';
@@ -39,13 +42,12 @@ export function TimerScreen({ fast }: { fast: Fast }) {
 
   const drink = async (type: DrinkType) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
-    const f = await addDrink(type);
-    if (f) showOngoing(f).catch(() => {});
+    await logDrink(type);
   };
   const undo = async (type: DrinkType) => {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning).catch(() => {});
-    const f = await undoDrink(type);
-    if (f) showOngoing(f).catch(() => {});
+    await undoDrink(type);
+    await refreshSurfaces();
   };
 
   const end = async () => {
@@ -170,10 +172,49 @@ export function TimerScreen({ fast }: { fast: Fast }) {
         </View>
       </Card>
 
+      <KeepGoingCard />
+
       <Button title="End fast" variant="link" onPress={() => setConfirm(true)} />
 
       <EndFastSheet visible={confirm} elapsedMs={elapsedMs} onConfirm={end} onCancel={() => setConfirm(false)} />
     </Screen>
+  );
+}
+
+function KeepGoingCard() {
+  const [nudges, setNudges] = useState(true);
+  useEffect(() => {
+    nudgesEnabled().then(setNudges);
+  }, []);
+  const toggle = (on: boolean) => {
+    setNudges(on);
+    setNudgesEnabled(on).catch(() => {});
+  };
+  return (
+    <Card style={{ gap: 12 }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+        <View style={{ flex: 1 }}>
+          <Txt w="semibold">Keep-going nudges</Txt>
+          <Txt size={13} color={colors.muted}>
+            A push and a fasting fact every 3 hours, quiet 10 PM–8 AM.
+          </Txt>
+        </View>
+        <Switch
+          value={nudges}
+          onValueChange={toggle}
+          trackColor={{ true: colors.mint, false: colors.line }}
+          thumbColor={nudges ? colors.teal : '#FFF'}
+          accessibilityLabel="Keep-going nudges"
+        />
+      </View>
+      {Platform.OS === 'android' && (
+        <Button
+          title="Add widget to home screen"
+          variant="outline"
+          onPress={() => requestPinWidget({ widgetName: WIDGET_NAME }).catch(() => {})}
+        />
+      )}
+    </Card>
   );
 }
 

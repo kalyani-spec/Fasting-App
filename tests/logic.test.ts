@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { getMotivation, getPhase, milestoneCopy, milestonesFor } from '../src/lib/content.ts';
+import { FACTS, PHASES, getMotivation, getNudge, getPhase, milestoneCopy, milestonesFor, nextTarget } from '../src/lib/content.ts';
 import { HOUR, countToday, dayNumber, formatHHMM, formatHM, parseKg, startOfDay, totalDays } from '../src/lib/time.ts';
 
 test('elapsed formats as HH:MM and can exceed 24h', () => {
@@ -56,4 +56,23 @@ test('weight parsing', () => {
   assert.equal(parseKg('72,5'), 72.5);
   assert.equal(parseKg('abc'), null);
   assert.equal(parseKg('5'), null);
+});
+
+test('next target is the nearest of next day boundary / milestone / goal', () => {
+  assert.deepEqual(nextTarget(30, 72), { label: '36h', inH: 6 });
+  assert.equal(nextTarget(20, 72)?.label, 'Day 2');
+  assert.equal(nextTarget(50, 72)?.label, '60h');
+  assert.equal(nextTarget(66, 72)?.label, 'your 72h goal');
+  assert.equal(nextTarget(5, 16)?.label, '12h');
+  assert.equal(nextTarget(13, 16)?.label, 'your 16h goal');
+  assert.equal(nextTarget(17, 16), null);
+});
+
+test('nudges have content for every phase and fill {h}', () => {
+  assert.equal(FACTS.length, PHASES.length);
+  for (let h = 0; h < 80; h++) {
+    const n = getNudge(h);
+    assert.ok(n.push.length > 0 && n.fact.length > 0);
+    assert.ok(!n.push.includes('{h}'));
+  }
 });

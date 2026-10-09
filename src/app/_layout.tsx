@@ -14,7 +14,8 @@ import { AppState } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { milestonesFor } from '../lib/content';
 import { FastProvider, useFast } from '../lib/FastProvider';
-import { handleNotificationEvent, setupChannels, syncNotifications } from '../lib/notifications';
+import { setupChannels } from '../lib/notifications';
+import { handleNotificationEvent, syncSurfaces } from '../lib/surfaces';
 import * as store from '../lib/store';
 import { HOUR } from '../lib/time';
 import { colors } from '../lib/theme';
@@ -32,11 +33,11 @@ export default function RootLayout() {
   useEffect(() => {
     setupChannels().catch(() => {});
     const unsubFg = notifee.onForegroundEvent(handleNotificationEvent);
-    // Re-post the ongoing notification on every open/foreground — it can be
-    // swiped away on Android 14+ and doesn't survive a reboot.
-    syncNotifications().catch(() => {});
+    // Re-post the ongoing notification and redraw the widget on every
+    // open/foreground — it can be swiped away on Android 14+ and doesn't survive a reboot.
+    syncSurfaces().catch(() => {});
     const sub = AppState.addEventListener('change', (s) => {
-      if (s === 'active') syncNotifications().catch(() => {});
+      if (s === 'active') syncSurfaces().catch(() => {});
     });
     return () => {
       unsubFg();

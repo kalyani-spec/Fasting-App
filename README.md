@@ -42,6 +42,8 @@ src/lib/store.ts             the only place that reads/writes AsyncStorage
 src/lib/notifications.ts     channels, ongoing notification, milestone triggers, action handler
 src/lib/content.ts           phases, organ status, motivation, milestone copy
 src/lib/time.ts              formatting + "today" helpers
+src/lib/surfaces.ts          refreshes notification + widget; shared notification event handler
+src/widget/                  home-screen widget, its headless task handler and updater
 src/components/art/          WaterGlass mascot + organ characters (react-native-svg)
 ```
 
@@ -61,5 +63,13 @@ src/components/art/          WaterGlass mascot + organ characters (react-native-
   notification's progress is refreshed. In-app, the milestone modal opens the first time the
   app is seen after crossing one (`milestones:seen`). Milestones already behind a backdated
   start aren't celebrated.
+- **Keep-going content**: the lock-screen notification shows the day, phase, a rotating
+  "keep going" line, and (expanded) a fasting fact plus time to the next target. Nudges
+  (`nudge-<h>`) fire every 3 hours, not 10 PM–8 AM and not next to a milestone, and can be
+  turned off on the Timer screen. Each one also refreshes the lock-screen text.
+- **Home-screen widget** (`src/widget/`, via `react-native-android-widget`): hours fasted,
+  progress, the push line and + Water / + Chaas buttons. It redraws every 30 min (which also
+  refreshes the lock-screen notification) and on every change. Android phones generally don't
+  let apps place widgets on the lock screen itself, so the notification is the lock-screen part.
 - **Ending** moves the fast to `fast:history`, cancels the ongoing notification and all `ms-*`
   triggers, and shows a summary that never uses failure language.

@@ -14,7 +14,7 @@
     "android": {
       "package": "com.kalyani.fasting",
       "adaptiveIcon": {
-        "backgroundColor": "#E4F1EE",
+        "backgroundColor": "#1E6B62",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
@@ -34,7 +34,33 @@
           "backgroundColor": "#F3F5F2"
         }
       ],
-      "./plugins/withNotificationIcon"
+      "./plugins/withNotificationIcon",
+      [
+        "react-native-android-widget",
+        {
+          "fonts": [
+            "./assets/fonts/Poppins_400Regular.ttf",
+            "./assets/fonts/Poppins_600SemiBold.ttf",
+            "./assets/fonts/Poppins_700Bold.ttf"
+          ],
+          "widgets": [
+            {
+              "name": "FastWidget",
+              "label": "Fasting",
+              "description": "Your fast at a glance, with a push to keep going",
+              "minWidth": "250dp",
+              "minHeight": "110dp",
+              "targetCellWidth": 4,
+              "targetCellHeight": 2,
+              "maxResizeWidth": "420dp",
+              "maxResizeHeight": "260dp",
+              "resizeMode": "horizontal|vertical",
+              "previewImage": "./assets/widget-preview.png",
+              "updatePeriodMillis": 1800000
+            }
+          ]
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": false

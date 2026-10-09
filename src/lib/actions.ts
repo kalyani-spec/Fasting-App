@@ -1,6 +1,8 @@
 import { milestonesFor } from './content';
 import * as notif from './notifications';
 import * as store from './store';
+import { clearSurfaces } from './surfaces';
+import { updateWidget } from '../widget/update';
 import { HOUR } from './time';
 import type { Fast, GoalHours } from './types';
 
@@ -17,19 +19,17 @@ export async function beginFast(opts: { startTime: number; goalHours: GoalHours;
     await notif.maybePromptExactAlarms();
     await notif.showOngoing(fast);
     await notif.scheduleMilestones(fast);
+    await notif.scheduleNudges(fast);
   } catch (e) {
     console.warn('Notification setup failed', e);
   }
+  await updateWidget();
   return fast;
 }
 
 /** End the active fast: move it to history and clear all notifications. */
 export async function finishFast(): Promise<Fast | null> {
   const ended = await store.endActive();
-  try {
-    await notif.cancelAll();
-  } catch (e) {
-    console.warn('Cancel notifications failed', e);
-  }
+  await clearSurfaces();
   return ended;
 }

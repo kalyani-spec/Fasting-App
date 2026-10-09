@@ -184,3 +184,7 @@ export async function getFlag(name: string): Promise<boolean> {
 export async function setFlag(name: string): Promise<void> {
   await AsyncStorage.setItem(`flag:${name}`, '1');
 }
+
+export async function clearFlag(name: string): Promise<void> {
+  await AsyncStorage.removeItem(`flag:${name}`);
+}
