@@ -15,9 +15,13 @@ import { HOUR, countToday, dayNumber, formatHM, totalDays } from './time';
 import type { Fast } from './types';
 
 export const ONGOING_ID = 'fast-ongoing';
-const CH_ONGOING = 'fast-ongoing';
-const CH_MILESTONES = 'fast-milestones';
-const CH_NUDGES = 'fast-nudges';
+// Channel settings can't change after creation, so fixes need new ids (v2):
+// the timer must be an "alerting" channel or Samsung/Android hides it from the
+// lock screen as a silent notification; it still makes no sound or vibration.
+const CH_ONGOING = 'fast-timer-v2';
+const CH_MILESTONES = 'fast-milestones-v2';
+const CH_NUDGES = 'fast-nudges-v2';
+const OLD_CHANNELS = ['fast-ongoing', 'fast-milestones', 'fast-nudges'];
 export const MILESTONE_PREFIX = 'ms-';
 export const NUDGE_PREFIX = 'nudge-';
 
@@ -36,14 +40,18 @@ export async function setupChannels() {
   await notifee.createChannel({
     id: CH_ONGOING,
     name: 'Fasting timer',
-    importance: AndroidImportance.LOW,
+    description: 'The live timer on your lock screen. Never makes a sound.',
+    importance: AndroidImportance.DEFAULT,
     visibility: AndroidVisibility.PUBLIC,
+    vibration: false,
+    badge: false,
   });
   await notifee.createChannel({
     id: CH_MILESTONES,
     name: 'Milestones',
-    importance: AndroidImportance.DEFAULT,
+    importance: AndroidImportance.HIGH,
     visibility: AndroidVisibility.PUBLIC,
+    sound: 'default',
   });
   await notifee.createChannel({
     id: CH_NUDGES,
@@ -51,7 +59,9 @@ export async function setupChannels() {
     description: 'A short push and a fasting fact every few hours (not overnight)',
     importance: AndroidImportance.DEFAULT,
     visibility: AndroidVisibility.PUBLIC,
+    sound: 'default',
   });
+  for (const id of OLD_CHANNELS) await notifee.deleteChannel(id).catch(() => {});
 }
 
 /** Android 13+ POST_NOTIFICATIONS. Returns true if allowed. */
